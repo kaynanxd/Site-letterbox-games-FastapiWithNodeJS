@@ -5,6 +5,7 @@ from sqlalchemy import text, select
 from sqlalchemy.orm import selectinload, joinedload
 from app.models.user import Avaliacao, Jogo
 from app.models.user import Watchlist, Jogo, Genero, Plataforma, JogoWatchlist
+from sqlalchemy import text, select, func, desc
 
 class WatchlistRepository:
     def __init__(self, session: AsyncSession):
@@ -259,3 +260,25 @@ class WatchlistRepository:
             return association
         
         return None
+    
+    async def get_average_ratings_by_igdb_ids(self, igdb_ids: list[int]) -> dict[int, float]:
+            if not igdb_ids:
+                return {}
+                
+            
+            stmt = (
+                select(
+                    Jogo.id_igdb, 
+                    func.avg(Avaliacao.nota).label("media")
+                )
+                .join(Avaliacao, Jogo.id_jogo == Avaliacao.id_jogo)
+                .where(Jogo.id_igdb.in_(igdb_ids))
+                .group_by(Jogo.id_igdb)
+            )
+            result = await self.session.execute(stmt)
+            
+            ratings_map = {}
+            for row in result:
+                if row[0] is not None:
+                    ratings_map[row[0]] = round(row[1], 1)
+            return ratings_map

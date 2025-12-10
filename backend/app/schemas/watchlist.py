@@ -58,6 +58,7 @@ class IGDBGameResult(BaseModel):
     metacritic_rating: float | None
     developer: str | None = None
     publisher: str | None = None
+    media_nota_sistema: float | None = None
 
 class IGDBGameList(BaseModel):
     results: list[IGDBGameResult]

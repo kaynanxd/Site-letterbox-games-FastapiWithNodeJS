@@ -12,7 +12,6 @@ def resolve_country_and_market(country_id: int | None):
     if not country_id:
         return None, "Global"
 
-
     iso_map = {
         840: ("Estados Unidos", "EUA"),
         392: ("Japão", "Asia"),
@@ -32,56 +31,50 @@ def resolve_country_and_market(country_id: int | None):
 
     return "Desconhecido", "Global"
 
+
 class WatchlistService:
     def __init__(self, repository: WatchlistRepository, igdb_client: IGDBClient):
         self.repository = repository
         self.igdb_client = igdb_client
 
-    def _format_igdb_game(self, item: dict) -> IGDBGameResult:
-        cover = item.get("cover", {}).get("url", "")
-        if cover:
-            cover = "https:" + cover.replace("t_thumb", "t_cover_big")
-        
-        screenshots = []
-        for shot in item.get("screenshots", []):
-            url = shot.get("url", "")
-            if url:
-                screenshots.append("https:" + url.replace("t_thumb", "t_screenshot_med"))
-
-        videos = []
-        for vid in item.get("videos", []):
-            vid_id = vid.get("video_id")
-            if vid_id:
-                videos.append(f"https://www.youtube.com/watch?v={vid_id}")
-
-        return IGDBGameResult(
-            id=item["id"],
-            name=item["name"],
-            summary=item.get("summary"),
-            cover_url=cover,
-            screenshots=screenshots, 
-            videos=videos           
-        )
-
 
     async def search_games_igdb(self, query: str, limit: int = 20, offset: int = 0) -> list[IGDBGameResult]:
-        """Busca no IGDB e formata imagens/videos."""
-        results = await self.igdb_client.search_games(query, limit, offset)
-        return [self._format_igdb_game(item) for item in results]
+        """Busca no IGDB, formata e INSERE A MÉDIA DO SISTEMA."""
+        
+
+        raw_results = await self.igdb_client.search_games(query, limit, offset)
+        
+
+        formatted_results = [self._format_igdb_game(item) for item in raw_results]
+
+
+        if not formatted_results:
+            return []
+
+
+        igdb_ids = [game.id for game in formatted_results]
+        
+
+        ratings_map = await self.repository.get_average_ratings_by_igdb_ids(igdb_ids)
+
+        for game in formatted_results:
+            if game.id in ratings_map:
+                game.media_nota_sistema = ratings_map[game.id]
+        
+        return formatted_results
+
+
 
 
     async def get_igdb_game_details(self, igdb_id: int) -> IGDBGameResult:
-        """Busca um jogo específico no IGDB e formata para visualização."""
-
         item = await self.igdb_client.get_game_by_id(igdb_id)
-        
         if not item:
             raise HTTPException(status_code=404, detail="Jogo não encontrado no IGDB")
-            
+        
+
         return self._format_igdb_game(item)
 
     async def create_watchlist(self, user_id: int, nome: str) -> Watchlist:
-
         watchlist = Watchlist(id_user=user_id, nome=nome)
         return await self.repository.create_watchlist(watchlist)
         
@@ -111,7 +104,6 @@ class WatchlistService:
     async def get_user_watchlists(self, user_id: int) -> list[Watchlist]:
         return await self.repository.get_user_watchlists(user_id)
     
-
     async def add_igdb_game_to_watchlist(self, user_id: int, watchlist_id: int, igdb_game_id: int):
         watchlist = await self.repository.get_watchlist_by_id(watchlist_id)
         if not watchlist or watchlist.id_user != user_id:
@@ -134,15 +126,12 @@ class WatchlistService:
                 c_name = c_data.get("name")
                 if not c_name: continue
                 
-
                 c_country_id = c_data.get("country")
                 c_start_ts = c_data.get("start_date")
-
 
                 dt_fundacao = None
                 if c_start_ts:
                     try:
-
                         dt_fundacao = datetime.fromtimestamp(c_start_ts).date()
                     except (OSError, ValueError):
                         dt_fundacao = None
@@ -154,7 +143,6 @@ class WatchlistService:
                     if existing_id:
                         dev_id = existing_id
                     else:
-
                         dev_id = await self.repository.create_company_raw(
                             c_name, 'desenvolvedora', dt_fundacao, pais_nome, mercado_nome
                         )
@@ -164,7 +152,6 @@ class WatchlistService:
                     if existing_id:
                         pub_id = existing_id
                     else:
-
                         pub_id = await self.repository.create_company_raw(
                             c_name, 'publicadora', dt_fundacao, pais_nome, mercado_nome
                         )
@@ -224,6 +211,7 @@ class WatchlistService:
         
         return watchlist
     
+    # --- SUA FUNÇÃO DE FORMATAR MANVIDA INTACTA ---
     def _format_igdb_game(self, item: dict) -> IGDBGameResult:
         
         cover = item.get("cover", {}).get("url", "")
@@ -260,7 +248,6 @@ class WatchlistService:
         genres_list = []
         raw_genres = item.get("genres", [])
         if raw_genres:
-
             genres_list = [g.get("name") for g in raw_genres if g.get("name")]
 
         raw_rating = item.get("aggregated_rating")
@@ -386,15 +373,9 @@ class WatchlistService:
         return await self.get_watchlist_details(user_id, watchlist_id)
     
     async def get_popular_games_by_genre(self, genre_name: str, limit: int = 20, offset: int = 0) -> list[IGDBGameResult]:
-
         results = await self.igdb_client.search_games_by_genre(genre_name, limit, offset)
-        
-
         return [self._format_igdb_game(item) for item in results]
     
     async def get_top_games_global(self, limit: int = 20, offset: int = 0) -> list[IGDBGameResult]:
-
-        
         results = await self.igdb_client.get_all_popular_games(limit, offset)
-        
         return [self._format_igdb_game(item) for item in results]

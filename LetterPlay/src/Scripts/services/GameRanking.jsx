@@ -77,7 +77,7 @@ function Ranking() {
                     <div key={game.id} className="relative flex flex-col items-center group">
 
                         <Link
-                            to="/loreAccurateAboutGame"
+                            to="/AboutGame"
                             state={{ infosGame: game }}
                             className="transform transition-transform duration-300 hover:scale-105"
                         >

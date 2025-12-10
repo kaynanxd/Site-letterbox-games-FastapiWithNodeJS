@@ -197,7 +197,7 @@ export function AboutGame() {
         } catch (error) { 
             console.error(error);
             setIsFavorite(previousState); 
-            alert("Erro ao atualizar favoritos.");
+            alert("Erro, voce ja adicionou esse jogo aos favoritos.");
         }
     };
 
@@ -325,36 +325,31 @@ export function AboutGame() {
                     Avaliações da Comunidade
                 </TypographyUI>
 
-                {/* FORMULÁRIO DE NOVA AVALIAÇÃO */}
-                {currentUser ? (
-                    <div className="bg-black/30 p-6 rounded-xl border border-white/10 mb-10 backdrop-blur-md">
-                        <h3 className="text-white text-xl font-semibold mb-4">Deixe sua avaliação</h3>
-                        <form onSubmit={handlePostReview} className="flex flex-col gap-4">
-                            <div className="flex items-center gap-3">
-                                <span className="text-gray-300">Sua nota:</span>
-                                <StarRating 
-                                    rating={reviewForm.nota} 
-                                    interactive={true} 
-                                    setRating={(n) => setReviewForm({...reviewForm, nota: n})} 
-                                />
-                                <span className="text-white font-bold ml-2">{reviewForm.nota}/5</span>
-                            </div>
-                            <textarea
-                                className="w-full bg-black/40 text-white rounded-lg p-3 border border-gray-700 focus:border-primary focus:outline-none resize-none h-24 placeholder-gray-500"
-                                placeholder={`Comentando aqui`}
-                                value={reviewForm.comentario}
-                                onChange={(e) => setReviewForm({ ...reviewForm, comentario: e.target.value })}
+                {/* FORMULÁRIO DE NOVA AVALIAÇÃO (AGORA VISÍVEL PARA TODOS) */}
+                <div className="bg-black/30 p-6 rounded-xl border border-white/10 mb-10 backdrop-blur-md">
+                    <h3 className="text-white text-xl font-semibold mb-4">Deixe sua avaliação</h3>
+                    <form onSubmit={handlePostReview} className="flex flex-col gap-4">
+                        <div className="flex items-center gap-3">
+                            <span className="text-gray-300">Sua nota:</span>
+                            <StarRating 
+                                rating={reviewForm.nota} 
+                                interactive={true} 
+                                setRating={(n) => setReviewForm({...reviewForm, nota: n})} 
                             />
-                            <button type="submit" className="self-end bg-primary hover:bg-primary/80 text-white px-6 py-2 rounded-lg font-bold transition-all">
-                                Publicar
-                            </button>
-                        </form>
-                    </div>
-                ) : (
-                    <div className="p-6 mb-10 bg-white/5 border border-white/10 rounded-xl text-center text-gray-400">
-                        Faça login para avaliar este jogo.
-                    </div>
-                )}
+                            <span className="text-white font-bold ml-2">{reviewForm.nota}/5</span>
+                        </div>
+                        <textarea
+                            className="w-full bg-black/40 text-white rounded-lg p-3 border border-gray-700 focus:border-primary focus:outline-none resize-none h-24 placeholder-gray-500"
+                            // Aqui alterei o placeholder para não depender do currentUser.username
+                            placeholder={currentUser ? `Comentando como ${currentUser.username}...` : "Escreva sua avaliação..."}
+                            value={reviewForm.comentario}
+                            onChange={(e) => setReviewForm({ ...reviewForm, comentario: e.target.value })}
+                        />
+                        <button type="submit" className="self-end bg-primary hover:bg-primary/80 text-white px-6 py-2 rounded-lg font-bold transition-all">
+                            Publicar
+                        </button>
+                    </form>
+                </div>
 
                 {/* LISTA DE REVIEWS */}
                 <div className="flex flex-col gap-4">
