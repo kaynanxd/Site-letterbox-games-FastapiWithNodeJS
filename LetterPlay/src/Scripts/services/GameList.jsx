@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { CardUI } from "../ui";
-import { globalRanking } from "../api/watchListApi" 
+import { globalRanking } from "../api/watchListApi"; 
 
 function GameList() {
     const [games, setGames] = useState([]);
@@ -31,7 +31,13 @@ function GameList() {
                         id: game.id || game.id_jogo,
                         name: game.name || game.titulo || game.nome,
                         cover_url: cover,
-                        rating: game.rating || game.total_rating || game.media || 0,
+                        
+                        media_nota_sistema: game.media_nota_sistema, 
+                        metacritic_rating: game.metacritic_rating,   
+                        developer: game.developer,                   
+                        publisher: game.publisher,                   
+                        
+                        rating: game.media_nota_sistema || game.total_rating || game.media || 0,
                         genres: (game.genres || game.generos || []).map(g => g.name || g.nome_genero || g),
                         summary: game.summary || game.descricao || "",
                         screenshots: (game.screenshots || []).map(s => s.url || s),

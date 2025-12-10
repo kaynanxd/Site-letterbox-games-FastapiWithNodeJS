@@ -14,35 +14,32 @@ function Ranking() {
                 const rawData = await getWeeklyRanking();
 
                 let list = [];
-                
-                if (Array.isArray(rawData)) {
-                    list = rawData;
-                } else if (Array.isArray(rawData.jogos)) {
-                    list = rawData.jogos;
-                } else if (Array.isArray(rawData.ranking)) {
-                    list = rawData.ranking;
-                } else if (Array.isArray(rawData.data)) {
-                    list = rawData.data;
-                } else if (Array.isArray(rawData.results)) {
-                    list = rawData.results;
-                }
+                if (Array.isArray(rawData)) list = rawData;
+                else if (Array.isArray(rawData.jogos)) list = rawData.jogos;
+                else if (Array.isArray(rawData.ranking)) list = rawData.ranking; // Seu schema diz que retorna lista direta ou "ranking"
 
                 const formatted = list.slice(0, 3).map((game) => {
                     let cover = game.cover?.url || game.cover_url || game.capa_url || "";
                     if (cover.startsWith("//")) cover = `https:${cover}`;
-                    
                     cover = cover.replace("t_thumb", "t_cover_big");
 
                     return {
                         id: game.id || game.id_jogo,
                         name: game.name || game.titulo,
                         cover_url: cover,
-                        rating: game.rating || game.total_rating || game.media || 0,
-                        genres: (game.genres || []).map(g => g.name || g.nome_genero || g),
+                        
+                        // --- CORREÇÃO: Dados do DB para AboutGame ---
+                        media_geral: game.media, // No ranking DB, a nota média vem como "media"
+                        desenvolvedora: game.desenvolvedora, // Passa o objeto completo
+                        publicadora: game.publicadora,       // Passa o objeto completo
+                        nota_metacritic: game.nota_metacritic,
+
+                        // Fallbacks
+                        rating: game.media || 0,
+                        genres: (game.genres || game.generos || []).map(g => g.name || g.nome_genero || g),
                         summary: game.summary || game.descricao || "",
                         screenshots: (game.screenshots || []).map(s => s.url || s),
                         release_date: game.first_release_date,
-                        involved_companies: game.involved_companies || []
                     };
                 });
 
@@ -83,7 +80,6 @@ function Ranking() {
                         >
                             <CardUI infosGame={game} className="-ml-10" /> 
                         </Link>
-
 
                         <div className={`h-12 w-12 absolute top-2 right-24 z-10 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20
                             ${index === 0 ? "bg-yellow-500 shadow-yellow-500/50" 

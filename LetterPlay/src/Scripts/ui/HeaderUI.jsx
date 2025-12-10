@@ -20,7 +20,6 @@ function HeaderUI({ user, isHome }) {
     const togglePopup = () => setPopupProfileOpen(prev => !prev);
 
     const handleProfileClick = () => {
-
         if (isHome && !user) {
             navigate("/register");
         } else {
@@ -33,6 +32,7 @@ function HeaderUI({ user, isHome }) {
         localStorage.removeItem("userId");
         window.location.href = "/";
     };
+
 
     const formatGameData = (item) => {
         const game = item.jogo || item;
@@ -47,12 +47,17 @@ function HeaderUI({ user, isHome }) {
             id: game.id || game.id_jogo,
             name: game.name || game.titulo,
             cover_url: cover,
+            
+            media_nota_sistema: game.media_nota_sistema,
+            metacritic_rating: game.metacritic_rating,  
+            developer: game.developer,                   
+            publisher: game.publisher,                   
+            
             rating: game.rating || game.total_rating || 0,
             genres: (game.genres || []).map(g => g.name || g.nome_genero || g),
             summary: game.summary || game.descricao || "",
             screenshots: (game.screenshots || []).map(s => s.url || s),
             release_date: game.first_release_date,
-            metacritic: game.metacritic || game.metacritic_rating || null
         };
     };
 
@@ -144,12 +149,19 @@ function HeaderUI({ user, isHome }) {
                                         )}
                                     </div>
                                     
-
                                     <div className="flex flex-col overflow-hidden">
                                         <span className="text-white font-bold text-sm truncate">{game.name}</span>
-                                        <span className="text-gray-400 text-xs truncate">
-                                            {game.release_date ? new Date(game.release_date * 1000).getFullYear() : "-"}
-                                        </span>
+                                        <div className="flex gap-2 text-xs">
+                                            <span className="text-gray-400">
+                                                {game.release_date ? new Date(game.release_date * 1000).getFullYear() : "-"}
+                                            </span>
+
+                                            {game.media_nota_sistema > 0 && (
+                                                <span className="text-yellow-500 flex items-center gap-1">
+                                                    ★ {game.media_nota_sistema.toFixed(1)}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))

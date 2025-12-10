@@ -265,20 +265,26 @@ class WatchlistRepository:
             if not igdb_ids:
                 return {}
                 
-            
+
             stmt = (
-                select(
-                    Jogo.id_igdb, 
-                    func.avg(Avaliacao.nota).label("media")
+                select(Jogo.id_igdb, Jogo.media_nota)
+                .where(
+                    Jogo.id_igdb.in_(igdb_ids),
+                    Jogo.media_nota > 0 
                 )
-                .join(Avaliacao, Jogo.id_jogo == Avaliacao.id_jogo)
-                .where(Jogo.id_igdb.in_(igdb_ids))
-                .group_by(Jogo.id_igdb)
             )
+            
             result = await self.session.execute(stmt)
             
             ratings_map = {}
             for row in result:
-                if row[0] is not None:
-                    ratings_map[row[0]] = round(row[1], 1)
+
+                if row[0] is not None and row[1] is not None:
+                    ratings_map[row[0]] = row[1]
+                    
             return ratings_map
+    
+    async def get_id_jogo_by_igdb(self, igdb_id: int) -> int | None:
+        """Busca o ID interno (PK) de um jogo baseado no ID do IGDB."""
+        stmt = text("SELECT id_jogo FROM jogos WHERE id_igdb = :iid")
+        return await self.session.scalar(stmt, {"iid": igdb_id})

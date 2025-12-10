@@ -22,6 +22,28 @@ def get_watchlist_service(session: SessionDep):
     client = IGDBClient(IGDB_CLIENT_ID, IGDB_CLIENT_SECRET)
     return WatchlistService(repo, client)
 
+# --- AQUI ESTA A ALTERAÇÃO NECESSÁRIA ---
+def get_review_service(session: SessionDep):
+    """Cria e injeta dependências no ReviewService."""
+    r_repo = ReviewRepository(session)
+    w_repo = WatchlistRepository(session)
+    
+    # 1. Instanciamos o cliente do IGDB (igual ao get_watchlist_service)
+    client = IGDBClient(IGDB_CLIENT_ID, IGDB_CLIENT_SECRET)
+    
+    # 2. Passamos o client como o terceiro argumento
+    return ReviewService(r_repo, w_repo, client)
+# ----------------------------------------
+
+router = APIRouter(prefix="/watchlists", tags=["watchlists"])
+
+# ... (O resto das rotas continua EXATAMENTE igual ao que você já tem) ...
+
+def get_watchlist_service(session: SessionDep):
+    repo = WatchlistRepository(session)
+    client = IGDBClient(IGDB_CLIENT_ID, IGDB_CLIENT_SECRET)
+    return WatchlistService(repo, client)
+
 def get_review_service(session: SessionDep):
     """Cria e injeta dependências no ReviewService."""
     r_repo = ReviewRepository(session)

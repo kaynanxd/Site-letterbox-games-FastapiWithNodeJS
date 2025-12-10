@@ -10,7 +10,7 @@ export default function AboutList() {
     const { state } = useLocation();
     const navigate = useNavigate(); 
 
-    // Initialize State
+
     const [listInfo, setListInfo] = useState({
         id: state?.id || state?.watchlistId || null,
         name: state?.name || state?.nome || "Carregando...",
@@ -23,7 +23,7 @@ export default function AboutList() {
     const [isSearching, setIsSearching] = useState(false);
     const [isLoadingList, setIsLoadingList] = useState(false);
 
-    // Exact Values from Swagger
+
     const STATUS_OPTIONS = [
         { label: "Não Iniciado", value: "AINDA NAO JOGADO" },
         { label: "Concluído",    value: "JOGADO" }, 
@@ -37,67 +37,63 @@ export default function AboutList() {
         setSearchResults([]); 
     };
 
-    // --- HELPER: Refresh Data ---
+
     const refreshList = async (id) => {
-        if (!id) return;
-        try {
-            const rawData = await getWatchlistFull(id);
-            // In your JSON, the array is inside 'jogos'
-            const rawItems = rawData.jogos || rawData.games || [];
+            if (!id) return;
+            try {
+                const rawData = await getWatchlistFull(id);
+                const rawItems = rawData.jogos || rawData.games || [];
 
-            const formattedGames = rawItems.map((item) => {
-                const game = item.jogo || item; 
-                if (!game) return null;
+                const formattedGames = rawItems.map((item) => {
+                    const game = item.jogo || item; 
+                    if (!game) return null;
 
-                let cover = game.cover_url || game.cover?.url || game.capa_url || "";
-                if (cover.startsWith("//")) cover = `https:${cover}`;
-                if (cover.includes("t_thumb")) cover = cover.replace("t_thumb", "t_cover_big");
+                    let cover = game.cover_url || game.cover?.url || game.capa_url || "";
+                    if (cover.startsWith("//")) cover = `https:${cover}`;
+                    if (cover.includes("t_thumb")) cover = cover.replace("t_thumb", "t_cover_big");
 
-                return {
-                    // 1. NAVIGATION ID: Use IGDB ID (e.g., 26192) so AboutGame loads the right data
-                    id: game.id_igdb || game.id, 
+                    return {
+                        id: game.id_igdb || game.id, 
+                        local_id: game.id_jogo || game.id,
+                        name: game.titulo || game.name,
+                        cover_url: cover, 
+                        
+                        media_geral: game.media_geral,     
+                        nota_metacritic: game.nota_metacritic,
 
-                    // 2. LOCAL ID: Use Database ID (e.g., 3) for Delete/Update
-                    local_id: game.id_jogo || game.id,
+                        desenvolvedora: game.desenvolvedora, 
+                        publicadora: game.publicadora,
 
-                    name: game.titulo || game.name, // Mapped from 'titulo'
-                    cover_url: cover, 
+                        nota_usuario: game.nota_usuario,
+                        rating: game.media_geral || 0,
+                        
+                        genres: (game.generos || game.genres || []).map(g => g.nome_genero || g.name || g),
+                        status: item.status_jogo || "AINDA NAO JOGADO",
+                        summary: game.descricao || game.summary || "",
+                        screenshots: (game.screenshots || []).map(s => s.url || s),
+                    };
+                }).filter(Boolean);
                     
-                    // Ratings & Metacritic
-                    rating: game.nota_usuario || game.rating || 0,
-                    metacritic: game.nota_metacritic || game.metacritic_rating || null,
+                setListInfo({
+                    id: rawData.id_watchlist || rawData.id,
+                    name: rawData.nome || rawData.name,
+                    description: rawData.descricao || rawData.description || "",
+                    games: formattedGames
+                });
+            } catch (error) {
+                console.error("Error refreshing list:", error);
+            }
+        };
 
-                    genres: (game.generos || game.genres || []).map(g => g.nome_genero || g.name || g),
-                    
-                    status: item.status_jogo || "AINDA NAO JOGADO",
-                    
-                    summary: game.descricao || game.summary || "",
-                    developer: game.desenvolvedora?.nome || "Desconhecido",
-                    publisher: game.publicadora?.nome || "Desconhecido",
-                    screenshots: (game.screenshots || []).map(s => s.url || s),
-                };
-            }).filter(Boolean);
-                
-            setListInfo({
-                id: rawData.id_watchlist || rawData.id,
-                name: rawData.nome || rawData.name,
-                description: rawData.descricao || rawData.description || "",
-                games: formattedGames
-            });
-        } catch (error) {
-            console.error("Error refreshing list:", error);
-        }
-    };
 
-    // --- ACTION: Update Status ---
     const handleStatusChange = async (gameId, newStatus) => {
-        // Find the game to get its Local ID
+
         const game = listInfo.games.find(g => String(g.id) === String(gameId));
-        // Fallback to gameId if local_id is missing, but local_id is preferred
+
         const idToUse = game?.local_id || gameId;
 
         try {
-            // Optimistic Update
+
             setListInfo(prev => ({
                 ...prev,
                 games: prev.games.map(g => 
@@ -105,7 +101,6 @@ export default function AboutList() {
                 )
             }));
             
-            // Call API with LOCAL ID
             await updateGameStatus(listInfo.id, idToUse, newStatus);
         } catch (error) {
             console.error("Error updating status:", error);
@@ -114,7 +109,6 @@ export default function AboutList() {
         }
     };
 
-    // --- ACTION: Remove Game from List ---
     const handleRemoveGame = async (gameId) => {
         if (!window.confirm("Tem certeza que deseja remover este jogo da lista?")) return;
         
@@ -127,7 +121,6 @@ export default function AboutList() {
                 games: prev.games.filter(g => String(g.id) !== String(gameId))
             }));
 
-            // Call API with LOCAL ID
             await removeGame(listInfo.id, idToUse);
         } catch (error) {
             console.error("Error removing game:", error);
@@ -136,7 +129,7 @@ export default function AboutList() {
         }
     };
 
-    // --- ACTION: Delete Entire List ---
+
     const handleDeleteList = async () => {
         const confirmDelete = window.confirm(
             `Tem certeza que deseja excluir a lista "${listInfo.name}"? Esta ação não pode ser desfeita.`
@@ -153,12 +146,11 @@ export default function AboutList() {
         }
     };
 
-    // --- EFFECTS ---
+
     useEffect(() => {
         if (listInfo.id) refreshList(listInfo.id);
     }, []); 
 
-    // Search Effect ...
     useEffect(() => {
         if (!searchTerm.trim()) { setSearchResults([]); return; }
         const delayDebounceFn = setTimeout(async () => {
@@ -175,7 +167,7 @@ export default function AboutList() {
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm]);
 
-    // Add Game Action (Uses IGDB ID because search results come from IGDB)
+
     const addGameToList = async (game) => {
         if (!listInfo.id) return;
         try {
@@ -201,14 +193,13 @@ export default function AboutList() {
         <div className="p-10 min-h-screen bg-background relative">
             <HeaderUI />
 
-            {/* HEADER SECTION */}
             <div className="flex flex-col items-center mt-24 relative">
                 <div className="flex items-center gap-6">
                     <TypographyUI as="span" variant="titulo" className="text-4xl">
                         {listInfo.name}
                     </TypographyUI>
 
-                    {/* DELETE LIST BUTTON */}
+
                     <button 
                         onClick={handleDeleteList}
                         className="bg-red-600/20 hover:bg-red-600 p-2 rounded-lg transition-colors group"
@@ -221,7 +212,7 @@ export default function AboutList() {
                 </div>
             </div>
 
-            {/* GAMES GRID */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-12 justify-items-center mt-12 ml-10">
                 {listInfo.games.length === 0 && (
                      <TypographyUI variant="muted">Nenhum jogo adicionado.</TypographyUI>
@@ -235,15 +226,15 @@ export default function AboutList() {
                             state={{ infosGame: game }} 
                             className="block transform transition-transform duration-300 hover:scale-105"
                         >
-                            {/* CardUI will automatically pick up 'metacritic' from game object */}
+
                             <CardUI infosGame={game} />
                         </Link>
 
-                        {/* --- REMOVE GAME BUTTON --- */}
+
                         <button
                             onClick={(e) => {
                                 e.preventDefault(); 
-                                handleRemoveGame(game.id); // Uses ID to find the game, then uses local_id
+                                handleRemoveGame(game.id); 
                             }}
                             className="absolute top-2 left-2 z-20 bg-black/60 hover:bg-red-600 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                             title="Remover jogo da lista"
@@ -253,7 +244,7 @@ export default function AboutList() {
                             </svg>
                         </button>
 
-                        {/* --- STATUS DROPDOWN --- */}
+
                         <div className="absolute top-2 right-2 z-20">
                             <select
                                 value={game.status}
@@ -280,14 +271,13 @@ export default function AboutList() {
                 ))}
             </div>
 
-            {/* Floating Add Button */}
+
             <div className="fixed top-[90%] right-10 z-50">
                 <button onClick={openPopup} className="px-6 py-4 bg-primary text-white font-bold rounded-full shadow-lg hover:bg-primary/80 flex items-center gap-2">
                     <span className="text-xl">+</span> Adicionar Jogo
                 </button>
             </div>
 
-            {/* Search Popup */}
             <Popup isOpen={isPopupOpen} onPopUpClick={closePopup} className="bg-background p-6 w-auto min-w-[600px] max-h-[70vh] overflow-y-auto">
                 <button onClick={closePopup} className="absolute top-3 right-3 text-white p-2 rounded-lg hover:bg-black/60">✕</button>
                 <TypographyUI variant="titulo" className="text-2xl mb-6">Adicionar Jogo</TypographyUI>

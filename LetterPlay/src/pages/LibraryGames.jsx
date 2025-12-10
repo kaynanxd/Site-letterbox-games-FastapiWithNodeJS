@@ -6,7 +6,6 @@ import { searchByGenre } from '../Scripts/api/searchApi';
 
 export function LibraryGames() {
     
-    // --- STATE ---
     const [games, setGames] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedGenre, setSelectedGenre] = useState(null); 
@@ -15,7 +14,6 @@ export function LibraryGames() {
         return list.map((item) => {
             const game = item.jogo || item;
 
-            // Safe Cover URL
             let cover = game.cover?.url || game.cover_url || game.capa_url || game.url_capa || "";
             if (typeof cover === 'string') {
                 if (cover.startsWith("//")) cover = `https:${cover}`;
@@ -25,14 +23,16 @@ export function LibraryGames() {
             let dev = "Desconhecido";
             let pub = "Desconhecido";
 
-            if (game.desenvolvedora?.nome) dev = game.desenvolvedora.nome;
-            if (game.publicadora?.nome) pub = game.publicadora.nome;
+            if (game.developer && typeof game.developer === 'string') dev = game.developer;
+            if (game.publisher && typeof game.publisher === 'string') pub = game.publisher;
+
+            if (dev === "Desconhecido" && game.desenvolvedora?.nome) dev = game.desenvolvedora.nome;
+            if (pub === "Desconhecido" && game.publicadora?.nome) pub = game.publicadora.nome;
 
             if (dev === "Desconhecido" && Array.isArray(game.involved_companies)) {
                 const foundDev = game.involved_companies.find(c => c.developer);
                 if (foundDev) dev = foundDev.company?.name || foundDev.name;
             }
-
             if (pub === "Desconhecido" && Array.isArray(game.involved_companies)) {
                 const foundPub = game.involved_companies.find(c => c.publisher);
                 if (foundPub) pub = foundPub.company?.name || foundPub.name;
@@ -42,25 +42,28 @@ export function LibraryGames() {
                 id: game.id || game.id_jogo, 
                 name: game.name || game.titulo || game.nome,
                 cover_url: cover,
-                rating: game.rating || game.total_rating || game.media || game.metacritic_rating || 0,
-                genres: (game.genres || game.generos || []).map(g => g.name || g.nome_genero || g),
-                summary: game.summary || game.descricao || "",
+                
+                media_nota_sistema: game.media_nota_sistema,
+                metacritic_rating: game.metacritic_rating,
                 developer: dev,
                 publisher: pub,
-
+                
+                rating: game.media_nota_sistema || game.rating || game.total_rating || 0,
+                
+                genres: (game.genres || game.generos || []).map(g => g.name || g.nome_genero || g),
+                summary: game.summary || game.descricao || "",
                 screenshots: (game.screenshots || []).map(s => s.url || s),
                 release_date: game.first_release_date,
             };
         });
     };
 
-    // --- FETCH DATA ---
+
     useEffect(() => {
         async function loadLibrary() {
             setIsLoading(true);
             try {
                 let rawData;
-
                 if (selectedGenre) {
                     rawData = await searchByGenre(selectedGenre);
                 } else {
@@ -83,37 +86,25 @@ export function LibraryGames() {
                 setIsLoading(false);
             }
         }
-
         loadLibrary();
-    }, [selectedGenre]); // Re-run when genre changes
+    }, [selectedGenre]);
 
-
-    // --- HANDLER FOR FILTER ---
     const handleGenreSelect = (genre) => {
-        if (selectedGenre === genre) {
-            setSelectedGenre(null);
-        } else {
-            setSelectedGenre(genre);
-        }
+        if (selectedGenre === genre) setSelectedGenre(null);
+        else setSelectedGenre(genre);
     };
 
     return (
         <div className="w-full min-h-[150vh] bg-background">
             <HeaderUI />
-
-            {/* Top Ranking Section */}
             <GameRanking />
-
             <div id="divBiblioteca" className="px-10 pb-20">
                 <div className="flex flex-col items-center justify-center mt-32 mb-12">
                     <TypographyUI as="span" variant="titulo" className="text-4xl mb-8"> 
                         Biblioteca 
                     </TypographyUI>
-                
                     <FilterByGenre onSelect={handleGenreSelect} activeGenre={selectedGenre} />
                 </div>
-
-                {/* --- GAMES GRID --- */}
                 {isLoading ? (
                     <div className="text-white text-center mt-10">Carregando jogos...</div>
                 ) : (
@@ -137,7 +128,6 @@ export function LibraryGames() {
                     </div>
                 )}
             </div>
-
         </div>
     );
 }
