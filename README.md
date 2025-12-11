@@ -72,3 +72,20 @@ Antes de começar, certifique-se de ter instalado em sua máquina:
 ```bash
 git clone [https://github.com/seu-usuario/letterplay.git](https://github.com/seu-usuario/letterplay.git)
 cd letterplay
+```
+## Estrutura do Projeto :
+/backend
+  /app
+    /models       # Tabelas do Banco de Dados (SQLAlchemy)
+    /schemas      # Modelos de validação (Pydantic)
+    /routers      # Rotas da API (Endpoints)
+    /services     # Lógica de negócio (IGDB Client, Review Service)
+    /repositories # Acesso direto ao Banco de Dados (CRUD)
+    /database     # Conexão com Postgres
+
+/frontend
+  /src
+    /pages        # Telas (AboutGame, Library, Lists...)
+    /components   # Componentes UI reutilizáveis (HeaderUI, CardUI...)
+    /api          # Funções de chamada ao Backend (Axios)
+    /assets       # Imagens e ícones
