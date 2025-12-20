@@ -17,9 +17,9 @@ O projeto utiliza a API do **IGDB** para fornecer uma base de dados robusta, com
 
 | | | |
 |:---:|:---:|:---:|
-| ![Img 1](screenshots/1.jpg) | ![Img 2](screenshots/2.jpg) | ![Img 3](screenshots/3.jpg) |
-| ![Img 4](screenshots/4.jpg) | ![Img 5](screenshots/5.jpg) | ![Img 6](screenshots/6.jpg) |
-| ![Img 7](screenshots/7.jpg) | ![Img 8](screenshots/8.jpg) | ![Img 9](screenshots/9.jpg) |
+| ![Img 1](screenshots/1.png) | ![Img 2](screenshots/2.png) | ![Img 3](screenshots/3.png) |
+| ![Img 4](screenshots/4.png) | ![Img 5](screenshots/5.png) | ![Img 6](screenshots/6.png) |
+| ![Img 7](screenshots/7.png) | ![Img 8](screenshots/8.png) | ![Img 9](screenshots/9.png) |
 ---
 
 ## 🚀 Funcionalidades
