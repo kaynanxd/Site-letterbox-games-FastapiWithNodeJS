@@ -11,9 +11,8 @@ O projeto utiliza a API do **IGDB** para fornecer uma base de dados robusta, com
 
 ---
 
-## 📸 Screenshots
 
-### 📸 Galeria do Site
+##📸 Galeria do Site
 
 | | | |
 |:---:|:---:|:---:|
