@@ -13,9 +13,13 @@ O projeto utiliza a API do **IGDB** para fornecer uma base de dados robusta, com
 
 ## 📸 Screenshots
 
-*(Coloque aqui uma imagem da tela inicial)*
-*(Coloque aqui uma imagem da tela de detalhes do jogo)*
+### 📸 Galeria do Site
 
+| | | |
+|:---:|:---:|:---:|
+| ![Img 1](screenshot/1.jpg) | ![Img 2](screenshot/2.jpg) | ![Img 3](screenshot/3.jpg) |
+| ![Img 4](screenshot/4.jpg) | ![Img 5](screenshot/5.jpg) | ![Img 6](screenshot/6.jpg) |
+| ![Img 7](screenshot/7.jpg) | ![Img 8](screenshot/8.jpg) | ![Img 9](screenshot/9.jpg) |
 ---
 
 ## 🚀 Funcionalidades
